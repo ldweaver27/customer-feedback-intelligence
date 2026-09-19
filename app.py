@@ -16,12 +16,19 @@ supabase: Client = create_client(supabase_url, supabase_key)
 
 @app.route("/")
 def home():
-    response = supabase.table("product_areas").select("*").execute()
-    product_areas = response.data
+    product_areas_response = supabase.table("product_areas").select("*").execute()
+    companies_response = supabase.table("companies").select("*").execute()
+    feedback_response = (
+        supabase.table("feedback")
+        .select("*, companies(name, arr)")
+        .execute()
+    )
 
     return {
         "message": "Customer Feedback Intelligence",
-        "product_areas": product_areas,
+        "product_areas": product_areas_response.data,
+        "companies": companies_response.data,
+        "feedback": feedback_response.data,
     }
 
 
