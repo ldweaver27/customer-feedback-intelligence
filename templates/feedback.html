@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback | Customer Feedback Intelligence</title>
+</head>
+
+<body>
+
+    <h1>Customer Feedback Intelligence</h1>
+
+    <h2>Customer Feedback</h2>
+
+    <p>
+        Manually capture customer feedback for future AI analysis.
+    </p>
+
+    <hr>
+
+    <h3>Add Feedback</h3>
+
+    {% if error %}
+        <p><strong>{{ error }}</strong></p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('feedback') }}">
+
+        <label for="company_id">Company</label><br>
+        <select id="company_id" name="company_id" required>
+            <option value="">Select a company</option>
+
+            {% for company in companies %}
+                <option value="{{ company.id }}">
+                    {{ company.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label for="feedback_text">Customer Feedback</label><br>
+        <textarea
+            id="feedback_text"
+            name="feedback_text"
+            rows="5"
+            cols="70"
+            required></textarea>
+
+        <br><br>
+
+        <label for="source">Source</label><br>
+        <select id="source" name="source" required>
+            <option value="">Select a source</option>
+            <option value="Salesforce">Salesforce</option>
+            <option value="Pendo">Pendo</option>
+            <option value="Customer Success">Customer Success</option>
+            <option value="Customer Interview">Customer Interview</option>
+            <option value="In-App Feedback">In-App Feedback</option>
+            <option value="Email">Email</option>
+            <option value="Other">Other</option>
+        </select>
+
+        <br><br>
+
+        <label for="feedback_date">Feedback Date</label><br>
+        <input
+            type="date"
+            id="feedback_date"
+            name="feedback_date"
+            required
+        >
+
+        <br><br>
+
+        <label for="contact">Contact (optional)</label><br>
+        <input
+            type="text"
+            id="contact"
+            name="contact"
+        >
+
+        <br><br>
+
+        <button type="submit">Add Feedback</button>
+
+    </form>
+
+    <hr>
+
+    <h3>Captured Feedback</h3>
+
+    {% if feedback_records %}
+
+        {% for item in feedback_records %}
+
+            <div>
+
+                <p>
+                    <strong>Company:</strong>
+                    {{ item.companies.name }}
+                </p>
+
+                <p>
+                    <strong>Feedback:</strong>
+                    {{ item.feedback_text }}
+                </p>
+
+                <p>
+                    <strong>Source:</strong>
+                    {{ item.source }}
+                </p>
+
+                <p>
+                    <strong>Date:</strong>
+                    {{ item.feedback_date }}
+                </p>
+
+                {% if item.contact %}
+                    <p>
+                        <strong>Contact:</strong>
+                        {{ item.contact }}
+                    </p>
+                {% endif %}
+
+                <p>
+                    <strong>AI Analysis:</strong>
+                    Pending
+                </p>
+
+            </div>
+
+            <hr>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>No customer feedback has been captured yet.</p>
+
+    {% endif %}
+
+    <p>
+        <a href="{{ url_for('companies') }}">Manage Companies</a>
+        |
+        <a href="{{ url_for('product_areas') }}">Manage Product Areas</a>
+    </p>
+
+</body>
+</html>

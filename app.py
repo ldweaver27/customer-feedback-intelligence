@@ -206,5 +206,54 @@ def edit_company(company_id):
         company=company,
         error=error,
     )
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    error = None
+
+    companies_response = (
+        supabase.table("companies")
+        .select("*")
+        .order("name")
+        .execute()
+    )
+
+    companies = companies_response.data
+
+    if request.method == "POST":
+        company_id = request.form.get("company_id", "").strip()
+        feedback_text = request.form.get("feedback_text", "").strip()
+        source = request.form.get("source", "").strip()
+        feedback_date = request.form.get("feedback_date", "").strip()
+        contact = request.form.get("contact", "").strip()
+
+        if not company_id or not feedback_text or not source or not feedback_date:
+            error = "Company, feedback, source, and date are required."
+
+        else:
+            supabase.table("feedback").insert(
+                {
+                    "company_id": int(company_id),
+                    "feedback_text": feedback_text,
+                    "source": source,
+                    "feedback_date": feedback_date,
+                    "contact": contact if contact else None,
+                }
+            ).execute()
+
+            return redirect(url_for("feedback"))
+
+    feedback_response = (
+        supabase.table("feedback")
+        .select("*, companies(name, arr)")
+        .order("feedback_date", desc=True)
+        .execute()
+    )
+
+    return render_template(
+        "feedback.html",
+        companies=companies,
+        feedback_records=feedback_response.data,
+        error=error,
+    )
 if __name__ == "__main__":
     app.run(debug=True)
