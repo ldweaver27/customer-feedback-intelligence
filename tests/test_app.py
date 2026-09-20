@@ -80,4 +80,63 @@ def test_feedback_requires_required_fields(client):
     )
 
     assert response.status_code == 200
-    assert b"Company, feedback, source, and date are required." in response.data
+    assert (
+        b"Company, feedback, source, and date are required."
+        in response.data
+    )
+
+
+def test_ai_analysis_service_returns_expected_structure(monkeypatch):
+    expected_analysis = {
+        "product_area": "Reporting & Data Access",
+        "pain_point": (
+            "Analysts spend significant time manually retrieving "
+            "and combining reports before performing analysis."
+        ),
+        "requested_solution": "API access",
+    }
+
+    def mock_analyze_feedback(feedback_text, product_areas):
+        return expected_analysis
+
+    monkeypatch.setattr(
+        "app.analyze_feedback",
+        mock_analyze_feedback,
+    )
+
+    result = mock_analyze_feedback(
+        "We need an API because reporting is manual.",
+        [],
+    )
+
+    assert result["product_area"] == "Reporting & Data Access"
+    assert "manual" in result["pain_point"]
+    assert result["requested_solution"] == "API access"
+
+
+def test_ai_analysis_can_return_no_requested_solution(monkeypatch):
+    expected_analysis = {
+        "product_area": "Reporting & Data Access",
+        "pain_point": (
+            "Users cannot easily identify differences "
+            "between reporting periods."
+        ),
+        "requested_solution": None,
+    }
+
+    def mock_analyze_feedback(feedback_text, product_areas):
+        return expected_analysis
+
+    monkeypatch.setattr(
+        "app.analyze_feedback",
+        mock_analyze_feedback,
+    )
+
+    result = mock_analyze_feedback(
+        "It is difficult to tell what changed between periods.",
+        [],
+    )
+
+    assert result["product_area"] == "Reporting & Data Access"
+    assert result["pain_point"]
+    assert result["requested_solution"] is None

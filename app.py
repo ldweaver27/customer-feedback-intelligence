@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, url_for
 from supabase import Client, create_client
 
+from ai_service import analyze_feedback
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -245,7 +247,7 @@ def feedback():
 
     feedback_response = (
         supabase.table("feedback")
-        .select("*, companies(name, arr)")
+        .select("*, companies(name, arr), product_areas(name)")
         .order("feedback_date", desc=True)
         .execute()
     )
@@ -421,5 +423,59 @@ def upload_feedback():
         error=error,
         result=result,
     )
+@app.route("/feedback/<int:feedback_id>/analyze", methods=["POST"])
+def analyze_feedback_route(feedback_id):
+    feedback_response = (
+        supabase.table("feedback")
+        .select("*")
+        .eq("id", feedback_id)
+        .single()
+        .execute()
+    )
+
+    feedback_record = feedback_response.data
+
+    product_areas_response = (
+        supabase.table("product_areas")
+        .select("*")
+        .execute()
+    )
+
+    product_areas = product_areas_response.data
+
+    analysis = analyze_feedback(
+        feedback_record["feedback_text"],
+        product_areas,
+    )
+
+    matching_product_area = next(
+        (
+            area
+            for area in product_areas
+            if area["name"] == analysis["product_area"]
+        ),
+        None,
+    )
+
+    product_area_id = (
+        matching_product_area["id"]
+        if matching_product_area
+        else None
+    )
+
+    (
+        supabase.table("feedback")
+        .update(
+            {
+                "product_area_id": product_area_id,
+                "ai_pain_point": analysis["pain_point"],
+                "requested_solution": analysis["requested_solution"],
+            }
+        )
+        .eq("id", feedback_id)
+        .execute()
+    )
+
+    return redirect(url_for("feedback"))
 if __name__ == "__main__":
     app.run(debug=True)
