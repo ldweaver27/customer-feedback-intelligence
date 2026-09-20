@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Feedback | Customer Feedback Intelligence</title>
+</head>
+
+<body>
+
+    <h1>Upload Customer Feedback</h1>
+
+    <p>
+        Upload a CSV containing customer feedback from one or more sources.
+    </p>
+
+    <h3>Required Columns</h3>
+
+    <p>
+        company, feedback, source, date
+    </p>
+
+    <h3>Optional Columns</h3>
+
+    <p>
+        contact, arr
+    </p>
+
+    <hr>
+
+    {% if error %}
+        <p><strong>{{ error }}</strong></p>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <label for="file">CSV File</label><br>
+
+        <input
+            type="file"
+            id="file"
+            name="file"
+            accept=".csv"
+            required
+        >
+
+        <br><br>
+
+        <button type="submit">Upload Feedback</button>
+
+    </form>
+
+    {% if result %}
+
+        <hr>
+
+        <h3>Upload Results</h3>
+
+        <p>
+            <strong>Successfully imported:</strong>
+            {{ result.success_count }}
+        </p>
+
+        <p>
+            <strong>Failed:</strong>
+            {{ result.failure_count }}
+        </p>
+
+        {% if result.errors %}
+
+            <h4>Errors</h4>
+
+            <ul>
+                {% for item in result.errors %}
+                    <li>
+                        Row {{ item.row }}:
+                        {{ item.reason }}
+                    </li>
+                {% endfor %}
+            </ul>
+
+        {% endif %}
+
+    {% endif %}
+
+    <hr>
+
+    <p>
+        <a href="{{ url_for('feedback') }}">View Customer Feedback</a>
+    </p>
+
+</body>
+</html>

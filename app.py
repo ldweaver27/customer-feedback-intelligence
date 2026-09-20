@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, url_for
@@ -254,6 +255,171 @@ def feedback():
         companies=companies,
         feedback_records=feedback_response.data,
         error=error,
+    )
+@app.route("/feedback/upload", methods=["GET", "POST"])
+def upload_feedback():
+    error = None
+    result = None
+
+    if request.method == "POST":
+        uploaded_file = request.files.get("file")
+
+        if not uploaded_file or uploaded_file.filename == "":
+            error = "Please select a CSV file."
+
+        elif not uploaded_file.filename.lower().endswith(".csv"):
+            error = "Only CSV files are supported."
+
+        else:
+            try:
+                dataframe = pd.read_csv(uploaded_file)
+
+                required_columns = {
+                    "company",
+                    "feedback",
+                    "source",
+                    "date",
+                }
+
+                missing_columns = (
+                    required_columns - set(dataframe.columns)
+                )
+
+                if missing_columns:
+                    error = (
+                        "CSV is missing required columns: "
+                        + ", ".join(sorted(missing_columns))
+                    )
+
+                else:
+                    success_count = 0
+                    errors = []
+
+                    for index, row in dataframe.iterrows():
+                        row_number = index + 2
+
+                        company_name = (
+                            str(row.get("company", "")).strip()
+                            if pd.notna(row.get("company"))
+                            else ""
+                        )
+
+                        feedback_text = (
+                            str(row.get("feedback", "")).strip()
+                            if pd.notna(row.get("feedback"))
+                            else ""
+                        )
+
+                        source = (
+                            str(row.get("source", "")).strip()
+                            if pd.notna(row.get("source"))
+                            else ""
+                        )
+
+                        feedback_date = (
+                            str(row.get("date", "")).strip()
+                            if pd.notna(row.get("date"))
+                            else ""
+                        )
+
+                        contact = (
+                            str(row.get("contact", "")).strip()
+                            if pd.notna(row.get("contact"))
+                            else None
+                        )
+
+                        arr_value = (
+                            row.get("arr")
+                            if "arr" in dataframe.columns
+                            and pd.notna(row.get("arr"))
+                            else None
+                        )
+
+                        if (
+                            not company_name
+                            or not feedback_text
+                            or not source
+                            or not feedback_date
+                        ):
+                            errors.append(
+                                {
+                                    "row": row_number,
+                                    "reason": (
+                                        "Company, feedback, source, "
+                                        "and date are required."
+                                    ),
+                                }
+                            )
+                            continue
+
+                        try:
+                            parsed_date = pd.to_datetime(
+                                feedback_date,
+                                errors="raise",
+                            ).date().isoformat()
+
+                        except (ValueError, TypeError):
+                            errors.append(
+                                {
+                                    "row": row_number,
+                                    "reason": "Invalid feedback date.",
+                                }
+                            )
+                            continue
+
+                        company_response = (
+                            supabase.table("companies")
+                            .select("*")
+                            .eq("name", company_name)
+                            .execute()
+                        )
+
+                        if company_response.data:
+                            company = company_response.data[0]
+
+                        else:
+                            company_data = {
+                                "name": company_name,
+                                "arr": (
+                                    float(arr_value)
+                                    if arr_value is not None
+                                    else None
+                                ),
+                            }
+
+                            new_company_response = (
+                                supabase.table("companies")
+                                .insert(company_data)
+                                .execute()
+                            )
+
+                            company = new_company_response.data[0]
+
+                        supabase.table("feedback").insert(
+                            {
+                                "company_id": company["id"],
+                                "feedback_text": feedback_text,
+                                "source": source,
+                                "feedback_date": parsed_date,
+                                "contact": contact,
+                            }
+                        ).execute()
+
+                        success_count += 1
+
+                    result = {
+                        "success_count": success_count,
+                        "failure_count": len(errors),
+                        "errors": errors,
+                    }
+
+            except Exception as exc:
+                error = f"Unable to process CSV: {exc}"
+
+    return render_template(
+        "upload_feedback.html",
+        error=error,
+        result=result,
     )
 if __name__ == "__main__":
     app.run(debug=True)
