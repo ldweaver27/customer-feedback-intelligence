@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Companies | Customer Feedback Intelligence</title>
+</head>
+
+<body>
+
+    <h1>Customer Feedback Intelligence</h1>
+
+    <h2>Customer Companies</h2>
+
+    <p>
+        Manage customer companies associated with feedback and demand signals.
+    </p>
+
+    <hr>
+
+    <h3>Add Company</h3>
+
+    {% if error %}
+        <p><strong>{{ error }}</strong></p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('companies') }}">
+
+        <label for="name">Company Name</label><br>
+        <input
+            type="text"
+            id="name"
+            name="name"
+            required
+        >
+
+        <br><br>
+
+        <label for="arr">ARR (optional)</label><br>
+        <input
+            type="number"
+            id="arr"
+            name="arr"
+            min="0"
+            step="0.01"
+        >
+
+        <br><br>
+
+        <button type="submit">Add Company</button>
+
+    </form>
+
+    <hr>
+
+    <h3>Configured Companies</h3>
+
+    {% if companies %}
+
+        {% for company in companies %}
+
+            <div>
+
+                <h4>{{ company.name }}</h4>
+
+                <p>
+                    <strong>ARR:</strong>
+
+                    {% if company.arr is not none %}
+                        ${{ "{:,.2f}".format(company.arr) }}
+                    {% else %}
+                        Not provided
+                    {% endif %}
+                </p>
+
+                <a href="{{ url_for('edit_company', company_id=company.id) }}">
+                    Edit
+                </a>
+
+            </div>
+
+            <hr>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>No companies have been configured yet.</p>
+
+    {% endif %}
+
+    <p>
+        <a href="{{ url_for('product_areas') }}">View Product Areas</a>
+    </p>
+
+</body>
+</html>

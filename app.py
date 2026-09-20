@@ -105,5 +105,106 @@ def delete_product_area(area_id):
     )
 
     return redirect(url_for("product_areas"))
+@app.route("/companies", methods=["GET", "POST"])
+def companies():
+    error = None
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        arr_raw = request.form.get("arr", "").strip()
+
+        if not name:
+            error = "Company name is required."
+
+        else:
+            existing_company = (
+                supabase.table("companies")
+                .select("id")
+                .eq("name", name)
+                .execute()
+            )
+
+            if existing_company.data:
+                error = "A company with this name already exists."
+
+            else:
+                arr = float(arr_raw) if arr_raw else None
+
+                supabase.table("companies").insert(
+                    {
+                        "name": name,
+                        "arr": arr,
+                    }
+                ).execute()
+
+                return redirect(url_for("companies"))
+
+    response = (
+        supabase.table("companies")
+        .select("*")
+        .order("name")
+        .execute()
+    )
+
+    return render_template(
+        "companies.html",
+        companies=response.data,
+        error=error,
+    )
+@app.route("/companies/<int:company_id>/edit", methods=["GET", "POST"])
+def edit_company(company_id):
+    error = None
+
+    company_response = (
+        supabase.table("companies")
+        .select("*")
+        .eq("id", company_id)
+        .single()
+        .execute()
+    )
+
+    company = company_response.data
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        arr_raw = request.form.get("arr", "").strip()
+
+        if not name:
+            error = "Company name is required."
+
+        else:
+            duplicate = (
+                supabase.table("companies")
+                .select("id")
+                .eq("name", name)
+                .neq("id", company_id)
+                .execute()
+            )
+
+            if duplicate.data:
+                error = "A company with this name already exists."
+
+            else:
+                arr = float(arr_raw) if arr_raw else None
+
+                (
+                    supabase.table("companies")
+                    .update(
+                        {
+                            "name": name,
+                            "arr": arr,
+                        }
+                    )
+                    .eq("id", company_id)
+                    .execute()
+                )
+
+                return redirect(url_for("companies"))
+
+    return render_template(
+        "edit_company.html",
+        company=company,
+        error=error,
+    )
 if __name__ == "__main__":
     app.run(debug=True)
