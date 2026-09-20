@@ -5,12 +5,12 @@ from openai import OpenAI
 
 load_dotenv()
 
-client = OpenAI()
-
 
 def analyze_feedback(feedback_text, product_areas):
+    client = OpenAI()
+
     product_area_context = "\n".join(
-        [
+        [   
             (
                 f"- {area['name']}: {area['description']} "
                 f"Core functionality: {area['core_functionality']}"
