@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Areas | Customer Feedback Intelligence</title>
+</head>
+
+<body>
+
+    <h1>Customer Feedback Intelligence</h1>
+
+    <h2>Product Areas</h2>
+
+    <p>
+        Define the areas of your application that AI will use
+        to categorize incoming customer feedback.
+    </p>
+
+    <hr>
+
+    <h3>Add Product Area</h3>
+
+    <form method="POST" action="/product-areas">
+
+        <label for="name">Product Area Name</label><br>
+        <input type="text" id="name" name="name" required>
+
+        <br><br>
+
+        <label for="description">Description</label><br>
+        <textarea
+            id="description"
+            name="description"
+            rows="4"
+            cols="60"
+            required>
+        </textarea>
+
+        <br><br>
+
+        <label for="core_functionality">Core Functionality</label><br>
+        <textarea
+            id="core_functionality"
+            name="core_functionality"
+            rows="4"
+            cols="60"
+            required>
+        </textarea>
+
+        <br><br>
+
+        <button type="submit">Add Product Area</button>
+
+    </form>
+
+    <hr>
+
+    <h3>Configured Product Areas</h3>
+
+    {% if product_areas %}
+
+        {% for area in product_areas %}
+
+            <div>
+                <h4>{{ area.name }}</h4>
+
+                <p>
+                    <strong>Description:</strong>
+                    {{ area.description }}
+                </p>
+
+                <p>
+                    <strong>Core Functionality:</strong>
+                    {{ area.core_functionality }}
+                </p>
+                <a href="{{ url_for('edit_product_area', area_id=area.id) }}">
+                     Edit
+                </a>
+                <form
+                 method="POST"
+                 action="{{ url_for('delete_product_area', area_id=area.id) }}"
+                 style="display: inline;"
+                 onsubmit="return confirm('Are you sure you want to delete this product area?');"
+>
+    <button type="submit">Delete</button>
+</form>
+            </div>
+
+            <hr>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>No product areas have been configured yet.</p>
+
+    {% endif %}
+
+</body>
+</html>
