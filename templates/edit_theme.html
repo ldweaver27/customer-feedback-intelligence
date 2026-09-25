@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Theme | Customer Feedback Intelligence</title>
+</head>
+
+<body>
+
+    <h1>Edit Proposed Theme</h1>
+
+    <p>
+        Review and refine the AI-proposed theme before approval.
+    </p>
+
+    <form method="POST">
+
+        <label for="name">Theme Name</label><br>
+
+        <input
+            type="text"
+            id="name"
+            name="name"
+            value="{{ theme.name }}"
+            required
+        >
+
+        <br><br>
+
+        <label for="description">Description</label><br>
+
+        <textarea
+            id="description"
+            name="description"
+            rows="5"
+            cols="70"
+            required>{{ theme.description }}</textarea>
+
+        <br><br>
+
+        <button type="submit">
+            Save Changes
+        </button>
+
+        <a href="{{ url_for('themes') }}">
+            Cancel
+        </a>
+
+    </form>
+
+</body>
+</html>

@@ -140,3 +140,114 @@ def test_ai_analysis_can_return_no_requested_solution(monkeypatch):
     assert result["product_area"] == "Reporting & Data Access"
     assert result["pain_point"]
     assert result["requested_solution"] is None
+
+
+def test_themes_page_returns_success(client):
+    response = client.get("/themes")
+
+    assert response.status_code == 200
+    assert b"Pain-Point Themes" in response.data
+
+
+def test_theme_approval_updates_status(client, monkeypatch):
+    class MockResponse:
+        data = []
+
+    class MockQuery:
+        def update(self, data):
+            assert data == {"status": "Approved"}
+            return self
+
+        def eq(self, field, value):
+            assert field == "id"
+            return self
+
+        def execute(self):
+            return MockResponse()
+
+    class MockSupabase:
+        def table(self, table_name):
+            assert table_name == "themes"
+            return MockQuery()
+
+    monkeypatch.setattr(
+        "app.supabase",
+        MockSupabase(),
+    )
+
+    response = client.post(
+        "/themes/999/approve",
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+
+
+def test_theme_rejection_updates_status(client, monkeypatch):
+    class MockResponse:
+        data = []
+
+    class MockQuery:
+        def update(self, data):
+            assert data == {"status": "Rejected"}
+            return self
+
+        def eq(self, field, value):
+            assert field == "id"
+            return self
+
+        def execute(self):
+            return MockResponse()
+
+    class MockSupabase:
+        def table(self, table_name):
+            assert table_name == "themes"
+            return MockQuery()
+
+    monkeypatch.setattr(
+        "app.supabase",
+        MockSupabase(),
+    )
+
+    response = client.post(
+        "/themes/999/reject",
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+def test_theme_edit_page_returns_success(client, monkeypatch):
+    class MockResponse:
+        data = {
+            "id": 999,
+            "name": "Test Theme",
+            "description": "Test description",
+            "status": "Proposed",
+        }
+
+    class MockQuery:
+        def select(self, fields):
+            return self
+
+        def eq(self, field, value):
+            return self
+
+        def single(self):
+            return self
+
+        def execute(self):
+            return MockResponse()
+
+    class MockSupabase:
+        def table(self, table_name):
+            assert table_name == "themes"
+            return MockQuery()
+
+    monkeypatch.setattr(
+        "app.supabase",
+        MockSupabase(),
+    )
+
+    response = client.get("/themes/999/edit")
+
+    assert response.status_code == 200
+    assert b"Edit Proposed Theme" in response.data

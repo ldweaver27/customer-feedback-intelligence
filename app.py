@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, url_for
 from supabase import Client, create_client
 
-from ai_service import analyze_feedback
+from ai_service import analyze_feedback, match_theme, propose_theme
 
 load_dotenv()
 
@@ -219,7 +219,6 @@ def feedback():
         .order("name")
         .execute()
     )
-
     companies = companies_response.data
 
     if request.method == "POST":
@@ -475,7 +474,160 @@ def analyze_feedback_route(feedback_id):
         .eq("id", feedback_id)
         .execute()
     )
+    if product_area_id:
+        themes_response = (
+            supabase.table("themes")
+            .select("*")
+            .eq("product_area_id", product_area_id)
+            .eq("status", "Approved")
+            .execute()
+        )
+
+        approved_themes = themes_response.data
+
+        theme_match = match_theme(
+            analysis["pain_point"],
+            approved_themes,
+        )
+
+        if theme_match["matched"] and theme_match["theme_id"]:
+            existing_association = (
+                supabase.table("feedback_themes")
+                .select("id")
+                .eq("feedback_id", feedback_id)
+                .eq("theme_id", theme_match["theme_id"])
+                .execute()
+            )
+
+            if not existing_association.data:
+                supabase.table("feedback_themes").insert(
+                    {
+                        "feedback_id": feedback_id,
+                        "theme_id": theme_match["theme_id"],
+                    }
+                ).execute()
+
+        else:
+            proposed_theme = propose_theme(
+                analysis["pain_point"]
+            )
+
+            new_theme_response = (
+                supabase.table("themes")
+                .insert(
+                    {
+                        "product_area_id": product_area_id,
+                        "name": proposed_theme["name"],
+                        "description": proposed_theme["description"],
+                        "status": "Proposed",
+                    }
+                )
+                .execute()
+            )
+
+            new_theme = new_theme_response.data[0]
+
+            supabase.table("feedback_themes").insert(
+                {
+                    "feedback_id": feedback_id,
+                    "theme_id": new_theme["id"],
+                }
+            ).execute()
 
     return redirect(url_for("feedback"))
+
+@app.route("/themes")
+def themes():
+    proposed_response = (
+        supabase.table("themes")
+        .select(
+            "*, "
+            "product_areas(name), "
+            "feedback_themes("
+            "feedback("
+            "feedback_text, "
+            "companies(name)"
+            ")"
+            ")"
+        )
+        .eq("status", "Proposed")
+        .order("created_at")
+        .execute()
+    )
+
+    approved_response = (
+        supabase.table("themes")
+        .select("*, product_areas(name)")
+        .eq("status", "Approved")
+        .order("name")
+        .execute()
+    )
+
+    return render_template(
+        "themes.html",
+        proposed_themes=proposed_response.data,
+        approved_themes=approved_response.data,
+    )
+@app.route("/themes/<int:theme_id>/edit", methods=["GET", "POST"])
+def edit_theme(theme_id):
+    theme_response = (
+        supabase.table("themes")
+        .select("*")
+        .eq("id", theme_id)
+        .single()
+        .execute()
+    )
+
+    theme = theme_response.data
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        description = request.form.get("description", "").strip()
+
+        if name and description:
+            (
+                supabase.table("themes")
+                .update(
+                    {
+                        "name": name,
+                        "description": description,
+                    }
+                )
+                .eq("id", theme_id)
+                .execute()
+            )
+
+            return redirect(url_for("themes"))
+
+    return render_template(
+        "edit_theme.html",
+        theme=theme,
+    )
+
+
+@app.route("/themes/<int:theme_id>/approve", methods=["POST"])
+def approve_theme(theme_id):
+    (
+        supabase.table("themes")
+        .update({"status": "Approved"})
+        .eq("id", theme_id)
+        .execute()
+    )
+
+    return redirect(url_for("themes"))
+
+
+@app.route("/themes/<int:theme_id>/reject", methods=["POST"])
+def reject_theme(theme_id):
+    (
+        supabase.table("themes")
+        .update({"status": "Rejected"})
+        .eq("id", theme_id)
+        .execute()
+    )
+
+    return redirect(url_for("themes"))
+
+
 if __name__ == "__main__":
     app.run(debug=True)

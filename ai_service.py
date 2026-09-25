@@ -57,3 +57,102 @@ Return only valid JSON in this exact structure:
     )
 
     return json.loads(response.output_text)
+
+
+def match_theme(pain_point, themes):
+    client = OpenAI()
+
+    if not themes:
+        return {
+            "matched": False,
+            "theme_id": None,
+            "confidence": 0.0,
+        }
+
+    theme_context = "\n".join(
+        [
+            (
+                f"- Theme ID {theme['id']}: {theme['name']}\n"
+                f"  Description: {theme['description']}"
+            )
+            for theme in themes
+        ]
+    )
+
+    prompt = f"""
+You are helping a Product Manager organize customer pain points
+into an existing taxonomy of approved themes.
+
+Customer pain point:
+"{pain_point}"
+
+Approved themes:
+
+{theme_context}
+
+Determine whether the customer pain point represents substantially
+the same underlying customer problem as one of the approved themes.
+
+Important rules:
+- Match based on the underlying problem, not exact wording.
+- Different requested solutions can represent the same pain point.
+- Do not force a match simply because two items relate to the same
+  broad product area.
+- Only match when the underlying customer problem is meaningfully
+  the same.
+- If no theme appropriately represents the pain point, return no match.
+
+Return only valid JSON in this exact structure:
+
+{{
+    "matched": true or false,
+    "theme_id": theme ID or null,
+    "confidence": number between 0 and 1
+}}
+"""
+
+    response = client.responses.create(
+        model="gpt-5.6-luna",
+        input=prompt,
+    )
+
+    return json.loads(response.output_text)
+
+def propose_theme(pain_point):
+    client = OpenAI()
+
+    prompt = f"""
+You are helping a Product Manager organize customer feedback.
+
+The following customer pain point does not appropriately match
+an existing approved pain-point theme:
+
+"{pain_point}"
+
+Create a proposed pain-point theme that represents the underlying
+customer problem.
+
+Important rules:
+- The theme must describe the customer problem, not a requested feature.
+- Keep the theme broad enough that semantically similar customer
+  problems could be grouped into it later.
+- Do not make the theme so broad that unrelated problems would
+  reasonably belong to it.
+- Use solution-neutral language.
+- Keep the theme name concise.
+- The description should clearly explain the underlying problem.
+
+Return only valid JSON in this exact structure:
+
+{{
+    "name": "concise pain-point theme name",
+    "description": "clear solution-neutral description"
+}}
+"""
+
+    response = client.responses.create(
+        model="gpt-5.6-luna",
+        input=prompt,
+    )
+
+    return json.loads(response.output_text)

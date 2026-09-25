@@ -87,7 +87,9 @@
 
         <br><br>
 
-        <button type="submit">Add Feedback</button>
+        <button type="submit">
+            Add Feedback
+        </button>
 
     </form>
 
@@ -122,10 +124,12 @@
                 </p>
 
                 {% if item.contact %}
+
                     <p>
                         <strong>Contact:</strong>
                         {{ item.contact }}
                     </p>
+
                 {% endif %}
 
 
@@ -187,11 +191,21 @@
 
     {% else %}
 
-        <p>No customer feedback has been captured yet.</p>
+        <p>
+            No customer feedback has been captured yet.
+        </p>
 
     {% endif %}
 
+
     <p>
+
+        <a href="{{ url_for('themes') }}">
+            Review Themes
+        </a>
+
+        |
+
         <a href="{{ url_for('upload_feedback') }}">
             Upload Feedback CSV
         </a>
@@ -207,6 +221,7 @@
         <a href="{{ url_for('product_areas') }}">
             Manage Product Areas
         </a>
+
     </p>
 
 </body>

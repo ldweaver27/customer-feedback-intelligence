@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Themes | Customer Feedback Intelligence</title>
+</head>
+
+<body>
+
+    <h1>Customer Feedback Intelligence</h1>
+
+    <h2>Pain-Point Themes</h2>
+
+    <p>
+        Review AI-proposed themes before they become part of the
+        approved product-feedback taxonomy.
+    </p>
+
+    <hr>
+
+    <h3>Proposed Themes</h3>
+
+    {% if proposed_themes %}
+
+        {% for theme in proposed_themes %}
+
+            <div>
+
+                <h4>{{ theme.name }}</h4>
+
+                <p>
+                    <strong>Product Area:</strong>
+                    {{ theme.product_areas.name }}
+                </p>
+
+                <p>
+                    <strong>Description:</strong>
+                    {{ theme.description }}
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    {{ theme.status }}
+                </p>
+
+                <h5>Supporting Feedback</h5>
+
+                {% if theme.feedback_themes %}
+
+                    {% for association in theme.feedback_themes %}
+
+                        <blockquote>
+                            {{ association.feedback.feedback_text }}
+
+                            <br>
+
+                            <strong>Company:</strong>
+                            {{ association.feedback.companies.name }}
+                        </blockquote>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <p>
+                        No supporting feedback found.
+                    </p>
+
+                {% endif %}
+
+
+                <p>
+                    <a href="{{ url_for(
+                        'edit_theme',
+                        theme_id=theme.id
+                    ) }}">
+                        Edit Theme
+                    </a>
+                </p>
+
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'approve_theme',
+                        theme_id=theme.id
+                    ) }}"
+                >
+                    <button type="submit">
+                        Approve Theme
+                    </button>
+                </form>
+
+
+                <br>
+
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'reject_theme',
+                        theme_id=theme.id
+                    ) }}"
+                    onsubmit="return confirm(
+                        'Are you sure you want to reject this theme?'
+                    );"
+                >
+                    <button type="submit">
+                        Reject Theme
+                    </button>
+                </form>
+
+            </div>
+
+            <hr>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>
+            No themes are currently awaiting review.
+        </p>
+
+    {% endif %}
+
+
+    <h3>Approved Themes</h3>
+
+    {% if approved_themes %}
+
+        {% for theme in approved_themes %}
+
+            <div>
+
+                <h4>{{ theme.name }}</h4>
+
+                <p>
+                    <strong>Product Area:</strong>
+                    {{ theme.product_areas.name }}
+                </p>
+
+                <p>
+                    <strong>Description:</strong>
+                    {{ theme.description }}
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    {{ theme.status }}
+                </p>
+
+            </div>
+
+            <hr>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>
+            No themes have been approved yet.
+        </p>
+
+    {% endif %}
+
+
+    <p>
+        <a href="{{ url_for('feedback') }}">
+            View Customer Feedback
+        </a>
+    </p>
+
+</body>
+
+</html>
