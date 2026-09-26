@@ -6,6 +6,7 @@ from flask import Flask, redirect, render_template, request, url_for
 from supabase import Client, create_client
 
 from ai_service import analyze_feedback, match_theme, propose_theme
+from demand_service import calculate_theme_demand
 
 load_dotenv()
 
@@ -557,16 +558,51 @@ def themes():
 
     approved_response = (
         supabase.table("themes")
-        .select("*, product_areas(name)")
+        .select(
+            "*, "
+            "product_areas(name), "
+            "feedback_themes("
+            "feedback("
+            "id, "
+            "feedback_text, "
+            "companies("
+            "id, "
+            "name, "
+            "arr"
+            ")"
+            ")"
+            ")"
+        )
         .eq("status", "Approved")
         .order("name")
         .execute()
     )
 
+    all_feedback_response = (
+        supabase.table("feedback")
+        .select("company_id")
+        .execute()
+    )
+
+    total_feedback_companies = len(
+        {
+            item["company_id"]
+            for item in all_feedback_response.data
+        }
+    )
+
+    approved_themes = approved_response.data
+
+    for theme in approved_themes:
+        theme["demand"] = calculate_theme_demand(
+            theme_feedback=theme.get("feedback_themes", []),
+            total_feedback_companies=total_feedback_companies,
+        )
+
     return render_template(
         "themes.html",
         proposed_themes=proposed_response.data,
-        approved_themes=approved_response.data,
+        approved_themes=approved_themes,
     )
 @app.route("/themes/<int:theme_id>/edit", methods=["GET", "POST"])
 def edit_theme(theme_id):

@@ -1,7 +1,7 @@
 import pytest
 
 from app import app
-
+from demand_service import calculate_theme_demand, classify_demand
 
 @pytest.fixture
 def client():
@@ -251,3 +251,99 @@ def test_theme_edit_page_returns_success(client, monkeypatch):
 
     assert response.status_code == 200
     assert b"Edit Proposed Theme" in response.data
+def test_demand_classification_boundaries():
+    assert classify_demand(0) == "Low"
+    assert classify_demand(9.9) == "Low"
+    assert classify_demand(10) == "Medium"
+    assert classify_demand(24.9) == "Medium"
+    assert classify_demand(25) == "High"
+    assert classify_demand(100) == "High"
+
+
+def test_company_only_counts_once_per_theme():
+    theme_feedback = [
+        {
+            "feedback": {
+                "companies": {
+                    "id": 1,
+                    "name": "Acme Corp",
+                    "arr": 500000,
+                }
+            }
+        },
+        {
+            "feedback": {
+                "companies": {
+                    "id": 1,
+                    "name": "Acme Corp",
+                    "arr": 500000,
+                }
+            }
+        },
+        {
+            "feedback": {
+                "companies": {
+                    "id": 2,
+                    "name": "Cyberdyne Systems",
+                    "arr": 425000,
+                }
+            }
+        },
+    ]
+
+    result = calculate_theme_demand(
+        theme_feedback,
+        total_feedback_companies=8,
+    )
+
+    assert result["feedback_volume"] == 3
+    assert result["unique_companies"] == 2
+    assert result["demand_rate"] == 25.0
+    assert result["demand_classification"] == "High"
+    assert result["represented_arr"] == 925000
+
+
+def test_missing_arr_does_not_remove_company_vote():
+    theme_feedback = [
+        {
+            "feedback": {
+                "companies": {
+                    "id": 1,
+                    "name": "Acme Corp",
+                    "arr": 500000,
+                }
+            }
+        },
+        {
+            "feedback": {
+                "companies": {
+                    "id": 2,
+                    "name": "No ARR Company",
+                    "arr": None,
+                }
+            }
+        },
+    ]
+
+    result = calculate_theme_demand(
+        theme_feedback,
+        total_feedback_companies=10,
+    )
+
+    assert result["unique_companies"] == 2
+    assert result["demand_rate"] == 20.0
+    assert result["demand_classification"] == "Medium"
+    assert result["represented_arr"] == 500000
+
+
+def test_empty_theme_returns_zero_demand():
+    result = calculate_theme_demand(
+        theme_feedback=[],
+        total_feedback_companies=10,
+    )
+
+    assert result["feedback_volume"] == 0
+    assert result["unique_companies"] == 0
+    assert result["demand_rate"] == 0
+    assert result["demand_classification"] == "Low"
+    assert result["represented_arr"] == 0   

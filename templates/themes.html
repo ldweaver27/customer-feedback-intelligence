@@ -14,8 +14,8 @@
     <h2>Pain-Point Themes</h2>
 
     <p>
-        Review AI-proposed themes before they become part of the
-        approved product-feedback taxonomy.
+        Review AI-proposed themes and understand customer demand
+        for approved pain points.
     </p>
 
     <hr>
@@ -150,6 +150,36 @@
                 <p>
                     <strong>Status:</strong>
                     {{ theme.status }}
+                </p>
+
+
+                <h5>Demand Intelligence</h5>
+
+                <p>
+                    <strong>Unique Companies:</strong>
+                    {{ theme.demand.unique_companies }}
+                </p>
+
+                <p>
+                    <strong>Feedback Volume:</strong>
+                    {{ theme.demand.feedback_volume }}
+                </p>
+
+                <p>
+                    <strong>Demand Rate:</strong>
+                    {{ theme.demand.demand_rate }}%
+                </p>
+
+                <p>
+                    <strong>Demand Classification:</strong>
+                    {{ theme.demand.demand_classification }}
+                </p>
+
+                <p>
+                    <strong>ARR Represented:</strong>
+                    ${{ "{:,.2f}".format(
+                        theme.demand.represented_arr
+                    ) }}
                 </p>
 
             </div>
