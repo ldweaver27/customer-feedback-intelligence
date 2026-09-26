@@ -7,6 +7,7 @@ from supabase import Client, create_client
 
 from ai_service import analyze_feedback, match_theme, propose_theme
 from demand_service import calculate_theme_demand
+from openai import OpenAIError
 
 load_dotenv()
 
@@ -21,13 +22,6 @@ supabase: Client = create_client(supabase_url, supabase_key)
 @app.route("/")
 def home():
     return redirect(url_for("dashboard"))
-
-    return {
-        "message": "Customer Feedback Intelligence",
-        "product_areas": product_areas_response.data,
-        "companies": companies_response.data,
-        "feedback": feedback_response.data,
-    }
 
 @app.route("/product-areas", methods=["GET", "POST"])
 def product_areas():
@@ -437,10 +431,17 @@ def analyze_feedback_route(feedback_id):
 
     product_areas = product_areas_response.data
 
-    analysis = analyze_feedback(
-        feedback_record["feedback_text"],
-        product_areas,
-    )
+    try:
+        analysis = analyze_feedback(
+            feedback_record["feedback_text"],
+            product_areas,
+        )
+    except OpenAIError:
+        return (
+            "AI analysis is temporarily unavailable. "
+            "Please return to Feedback and try again later.",
+            503,
+        )
 
     matching_product_area = next(
         (
@@ -469,6 +470,7 @@ def analyze_feedback_route(feedback_id):
         .eq("id", feedback_id)
         .execute()
     )
+
     if product_area_id:
         themes_response = (
             supabase.table("themes")
@@ -480,10 +482,17 @@ def analyze_feedback_route(feedback_id):
 
         approved_themes = themes_response.data
 
-        theme_match = match_theme(
-            analysis["pain_point"],
-            approved_themes,
-        )
+        try:
+            theme_match = match_theme(
+                analysis["pain_point"],
+                approved_themes,
+            )
+        except OpenAIError:
+            return (
+                "Theme analysis is temporarily unavailable. "
+                "Please return to Feedback and try again later.",
+                503,
+            )
 
         if theme_match["matched"] and theme_match["theme_id"]:
             existing_association = (
@@ -503,9 +512,16 @@ def analyze_feedback_route(feedback_id):
                 ).execute()
 
         else:
-            proposed_theme = propose_theme(
-                analysis["pain_point"]
-            )
+            try:
+                proposed_theme = propose_theme(
+                    analysis["pain_point"]
+                )
+            except OpenAIError:
+                return (
+                    "Theme proposal is temporarily unavailable. "
+                    "Please return to Feedback and try again later.",
+                    503,
+                )
 
             new_theme_response = (
                 supabase.table("themes")
@@ -530,6 +546,8 @@ def analyze_feedback_route(feedback_id):
             ).execute()
 
     return redirect(url_for("feedback"))
+
+
 @app.route("/dashboard")
 def dashboard():
     feedback_response = (
