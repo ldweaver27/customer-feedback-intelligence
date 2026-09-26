@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Detail | Customer Feedback Intelligence</title>
+</head>
+
+<body>
+
+    <h1>{{ theme.name }}</h1>
+
+    <p>
+        <strong>Product Area:</strong>
+        {{ theme.product_areas.name }}
+    </p>
+
+    <p>
+        {{ theme.description }}
+    </p>
+
+    <hr>
+
+
+    <h2>Demand Intelligence</h2>
+
+    <p>
+        <strong>Unique Companies:</strong>
+        {{ theme.demand.unique_companies }}
+    </p>
+
+    <p>
+        <strong>Feedback Volume:</strong>
+        {{ theme.demand.feedback_volume }}
+    </p>
+
+    <p>
+        <strong>Demand Rate:</strong>
+        {{ theme.demand.demand_rate }}%
+    </p>
+
+    <p>
+        <strong>Demand Classification:</strong>
+        {{ theme.demand.demand_classification }}
+    </p>
+
+    <p>
+        <strong>ARR Represented:</strong>
+        ${{ "{:,.2f}".format(theme.demand.represented_arr) }}
+    </p>
+
+    <hr>
+
+
+    <h2>Supporting Customer Feedback</h2>
+
+    {% if theme.feedback_themes %}
+
+        {% for association in theme.feedback_themes %}
+
+            {% set item = association.feedback %}
+
+            <div>
+
+                <h3>{{ item.companies.name }}</h3>
+
+                <blockquote>
+                    {{ item.feedback_text }}
+                </blockquote>
+
+                <p>
+                    <strong>Source:</strong>
+                    {{ item.source }}
+                </p>
+
+                <p>
+                    <strong>Date:</strong>
+                    {{ item.feedback_date }}
+                </p>
+
+                {% if item.contact %}
+
+                    <p>
+                        <strong>Contact:</strong>
+                        {{ item.contact }}
+                    </p>
+
+                {% endif %}
+
+                <p>
+                    <strong>AI-Identified Pain Point:</strong>
+                    {{ item.ai_pain_point }}
+                </p>
+
+                <p>
+                    <strong>Requested Solution:</strong>
+
+                    {% if item.requested_solution %}
+                        {{ item.requested_solution }}
+                    {% else %}
+                        None identified
+                    {% endif %}
+                </p>
+
+            </div>
+
+            <hr>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>
+            No supporting feedback is associated with this theme.
+        </p>
+
+    {% endif %}
+
+
+    <p>
+        <a href="{{ url_for('dashboard') }}">
+            Back to Dashboard
+        </a>
+
+        |
+
+        <a href="{{ url_for('themes') }}">
+            Review Themes
+        </a>
+    </p>
+
+</body>
+
+</html>

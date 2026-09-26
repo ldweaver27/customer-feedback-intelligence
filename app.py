@@ -20,13 +20,7 @@ supabase: Client = create_client(supabase_url, supabase_key)
 
 @app.route("/")
 def home():
-    product_areas_response = supabase.table("product_areas").select("*").execute()
-    companies_response = supabase.table("companies").select("*").execute()
-    feedback_response = (
-        supabase.table("feedback")
-        .select("*, companies(name, arr)")
-        .execute()
-    )
+    return redirect(url_for("dashboard"))
 
     return {
         "message": "Customer Feedback Intelligence",
@@ -536,7 +530,160 @@ def analyze_feedback_route(feedback_id):
             ).execute()
 
     return redirect(url_for("feedback"))
+@app.route("/dashboard")
+def dashboard():
+    feedback_response = (
+        supabase.table("feedback")
+        .select(
+            "id, "
+            "company_id, "
+            "product_area_id, "
+            "product_areas(name)"
+        )
+        .execute()
+    )
 
+    feedback_records = feedback_response.data
+
+    total_feedback = len(feedback_records)
+
+    total_companies = len(
+        {
+            item["company_id"]
+            for item in feedback_records
+        }
+    )
+
+    product_area_summary = {}
+
+    for item in feedback_records:
+        if item["product_areas"]:
+            area_name = item["product_areas"]["name"]
+        else:
+            area_name = "Unclassified"
+
+        if area_name not in product_area_summary:
+            product_area_summary[area_name] = {
+                "name": area_name,
+                "feedback_count": 0,
+                "company_ids": set(),
+            }
+
+        product_area_summary[area_name]["feedback_count"] += 1
+        product_area_summary[area_name]["company_ids"].add(
+            item["company_id"]
+        )
+
+    product_areas = []
+
+    for area in product_area_summary.values():
+        product_areas.append(
+            {
+                "name": area["name"],
+                "feedback_count": area["feedback_count"],
+                "unique_companies": len(area["company_ids"]),
+            }
+        )
+
+    product_areas.sort(
+        key=lambda area: area["feedback_count"],
+        reverse=True,
+    )
+
+    themes_response = (
+        supabase.table("themes")
+        .select(
+            "*, "
+            "product_areas(name), "
+            "feedback_themes("
+            "feedback("
+            "id, "
+            "feedback_text, "
+            "companies("
+            "id, "
+            "name, "
+            "arr"
+            ")"
+            ")"
+            ")"
+        )
+        .eq("status", "Approved")
+        .execute()
+    )
+
+    themes = themes_response.data
+
+    for theme in themes:
+        theme["demand"] = calculate_theme_demand(
+            theme_feedback=theme.get("feedback_themes", []),
+            total_feedback_companies=total_companies,
+        )
+
+    themes.sort(
+        key=lambda theme: theme["demand"]["unique_companies"],
+        reverse=True,
+    )
+
+    return render_template(
+        "dashboard.html",
+        total_feedback=total_feedback,
+        total_companies=total_companies,
+        product_areas=product_areas,
+        themes=themes,
+    )
+@app.route("/themes/<int:theme_id>")
+def theme_detail(theme_id):
+    theme_response = (
+        supabase.table("themes")
+        .select(
+            "*, "
+            "product_areas(name), "
+            "feedback_themes("
+            "feedback("
+            "id, "
+            "feedback_text, "
+            "source, "
+            "feedback_date, "
+            "contact, "
+            "ai_pain_point, "
+            "requested_solution, "
+            "companies("
+            "id, "
+            "name, "
+            "arr"
+            ")"
+            ")"
+            ")"
+        )
+        .eq("id", theme_id)
+        .single()
+        .execute()
+    )
+
+    theme = theme_response.data
+
+    all_feedback_response = (
+        supabase.table("feedback")
+        .select("company_id")
+        .execute()
+    )
+
+    total_feedback_companies = len(
+        {
+            item["company_id"]
+            for item in all_feedback_response.data
+        }
+    )
+
+    theme["demand"] = calculate_theme_demand(
+        theme_feedback=theme.get("feedback_themes", []),
+        total_feedback_companies=total_feedback_companies,
+    )
+
+    return render_template(
+        "theme_detail.html",
+        theme=theme,
+    )
 @app.route("/themes")
 def themes():
     proposed_response = (

@@ -11,10 +11,11 @@ def client():
         yield client
 
 
-def test_home_page_returns_success(client):
+def test_home_page_redirects_to_dashboard(client):
     response = client.get("/")
 
-    assert response.status_code == 200
+    assert response.status_code == 302
+    assert "/dashboard" in response.headers["Location"]
 
 
 def test_product_areas_page_returns_success(client):
@@ -346,4 +347,20 @@ def test_empty_theme_returns_zero_demand():
     assert result["unique_companies"] == 0
     assert result["demand_rate"] == 0
     assert result["demand_classification"] == "Low"
-    assert result["represented_arr"] == 0   
+    assert result["represented_arr"] == 0
+
+
+def test_dashboard_page_returns_success(client):
+    response = client.get("/dashboard")
+
+    assert response.status_code == 200
+    assert b"Customer Feedback Intelligence" in response.data
+    assert b"Feedback Overview" in response.data
+    assert b"Customer Pain-Point Demand" in response.data
+def test_dashboard_contains_theme_demand(client):
+    response = client.get("/dashboard")
+
+    assert response.status_code == 200
+    assert b"Customer Pain-Point Demand" in response.data
+    assert b"Demand Rate" in response.data
+    assert b"ARR Represented" in response.data
