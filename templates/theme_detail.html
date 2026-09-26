@@ -1,29 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Theme Detail | Customer Feedback Intelligence</title>
-</head>
+{% block title %}
+    Theme Detail | Customer Feedback Intelligence
+{% endblock %}
 
-<body>
+{% block content %}
 
-    <h1>{{ theme.name }}</h1>
+<h1>{{ theme.name }}</h1>
 
-    <p>
-        <strong>Product Area:</strong>
-        {{ theme.product_areas.name }}
-    </p>
+<p>
+    <strong>Product Area:</strong>
+    {{ theme.product_areas.name }}
+</p>
 
-    <p>
-        {{ theme.description }}
-    </p>
-
-    <hr>
+<p>
+    {{ theme.description }}
+</p>
 
 
-    <h2>Demand Intelligence</h2>
+<h2>Demand Intelligence</h2>
+
+<div class="card">
 
     <p>
         <strong>Unique Companies:</strong>
@@ -50,86 +47,65 @@
         ${{ "{:,.2f}".format(theme.demand.represented_arr) }}
     </p>
 
-    <hr>
+</div>
 
 
-    <h2>Supporting Customer Feedback</h2>
+<h2>Supporting Customer Feedback</h2>
 
-    {% if theme.feedback_themes %}
+{% if theme.feedback_themes %}
 
-        {% for association in theme.feedback_themes %}
+    {% for association in theme.feedback_themes %}
 
-            {% set item = association.feedback %}
+        {% set item = association.feedback %}
 
-            <div>
+        <div class="card">
 
-                <h3>{{ item.companies.name }}</h3>
+            <h3>{{ item.companies.name }}</h3>
 
-                <blockquote>
-                    {{ item.feedback_text }}
-                </blockquote>
+            <blockquote>
+                {{ item.feedback_text }}
+            </blockquote>
 
+            <p>
+                <strong>Source:</strong>
+                {{ item.source }}
+            </p>
+
+            <p>
+                <strong>Date:</strong>
+                {{ item.feedback_date }}
+            </p>
+
+            {% if item.contact %}
                 <p>
-                    <strong>Source:</strong>
-                    {{ item.source }}
+                    <strong>Contact:</strong>
+                    {{ item.contact }}
                 </p>
+            {% endif %}
 
-                <p>
-                    <strong>Date:</strong>
-                    {{ item.feedback_date }}
-                </p>
+            <p>
+                <strong>AI-Identified Pain Point:</strong>
+                {{ item.ai_pain_point }}
+            </p>
 
-                {% if item.contact %}
+            <p>
+                <strong>Requested Solution:</strong>
 
-                    <p>
-                        <strong>Contact:</strong>
-                        {{ item.contact }}
-                    </p>
-
+                {% if item.requested_solution %}
+                    {{ item.requested_solution }}
+                {% else %}
+                    None identified
                 {% endif %}
+            </p>
 
-                <p>
-                    <strong>AI-Identified Pain Point:</strong>
-                    {{ item.ai_pain_point }}
-                </p>
+        </div>
 
-                <p>
-                    <strong>Requested Solution:</strong>
+    {% endfor %}
 
-                    {% if item.requested_solution %}
-                        {{ item.requested_solution }}
-                    {% else %}
-                        None identified
-                    {% endif %}
-                </p>
+{% else %}
 
-            </div>
+    <p>No supporting feedback is associated with this theme.</p>
 
-            <hr>
+{% endif %}
 
-        {% endfor %}
-
-    {% else %}
-
-        <p>
-            No supporting feedback is associated with this theme.
-        </p>
-
-    {% endif %}
-
-
-    <p>
-        <a href="{{ url_for('dashboard') }}">
-            Back to Dashboard
-        </a>
-
-        |
-
-        <a href="{{ url_for('themes') }}">
-            Review Themes
-        </a>
-    </p>
-
-</body>
-
-</html>
+{% endblock %}

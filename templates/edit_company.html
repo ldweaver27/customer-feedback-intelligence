@@ -1,22 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Company | Customer Feedback Intelligence</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}
+    Edit Company | Customer Feedback Intelligence
+{% endblock %}
 
-    <h1>Edit Company</h1>
+{% block content %}
 
-    {% if error %}
-        <p><strong>{{ error }}</strong></p>
-    {% endif %}
+<h1>Edit Company</h1>
+
+{% if error %}
+    <p><strong>{{ error }}</strong></p>
+{% endif %}
+
+<div class="card">
 
     <form method="POST">
 
         <label for="name">Company Name</label><br>
+
         <input
             type="text"
             id="name"
@@ -28,6 +29,7 @@
         <br><br>
 
         <label for="arr">ARR (optional)</label><br>
+
         <input
             type="number"
             id="arr"
@@ -39,11 +41,16 @@
 
         <br><br>
 
-        <button type="submit">Save Changes</button>
+        <button type="submit">
+            Save Changes
+        </button>
 
-        <a href="{{ url_for('companies') }}">Cancel</a>
+        <a href="{{ url_for('companies') }}">
+            Cancel
+        </a>
 
     </form>
 
-</body>
-</html>
+</div>
+
+{% endblock %}

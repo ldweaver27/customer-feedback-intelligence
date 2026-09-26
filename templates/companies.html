@@ -1,28 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Companies | Customer Feedback Intelligence</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}
+    Companies | Customer Feedback Intelligence
+{% endblock %}
 
-    <h1>Customer Feedback Intelligence</h1>
+{% block content %}
 
-    <h2>Customer Companies</h2>
+<h1>Customer Companies</h1>
 
-    <p>
-        Manage customer companies associated with feedback and demand signals.
-    </p>
+<p>
+    Manage customer companies associated with feedback and demand signals.
+</p>
 
-    <hr>
+<h2>Add Company</h2>
 
-    <h3>Add Company</h3>
+{% if error %}
+    <p><strong>{{ error }}</strong></p>
+{% endif %}
 
-    {% if error %}
-        <p><strong>{{ error }}</strong></p>
-    {% endif %}
+<div class="card">
 
     <form method="POST" action="{{ url_for('companies') }}">
 
@@ -47,51 +43,50 @@
 
         <br><br>
 
-        <button type="submit">Add Company</button>
+        <button type="submit">
+            Add Company
+        </button>
 
     </form>
 
-    <hr>
+</div>
 
-    <h3>Configured Companies</h3>
 
-    {% if companies %}
+<h2>Configured Companies</h2>
 
-        {% for company in companies %}
+{% if companies %}
 
-            <div>
+    {% for company in companies %}
 
-                <h4>{{ company.name }}</h4>
+        <div class="card">
 
-                <p>
-                    <strong>ARR:</strong>
+            <h3>{{ company.name }}</h3>
 
-                    {% if company.arr is not none %}
-                        ${{ "{:,.2f}".format(company.arr) }}
-                    {% else %}
-                        Not provided
-                    {% endif %}
-                </p>
+            <p>
+                <strong>ARR:</strong>
 
-                <a href="{{ url_for('edit_company', company_id=company.id) }}">
-                    Edit
-                </a>
+                {% if company.arr is not none %}
+                    ${{ "{:,.2f}".format(company.arr) }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
 
-            </div>
+            <a href="{{ url_for(
+                'edit_company',
+                company_id=company.id
+            ) }}">
+                Edit Company
+            </a>
 
-            <hr>
+        </div>
 
-        {% endfor %}
+    {% endfor %}
 
-    {% else %}
+{% else %}
 
-        <p>No companies have been configured yet.</p>
+    <p>No companies have been configured yet.</p>
 
-    {% endif %}
+{% endif %}
 
-    <p>
-        <a href="{{ url_for('product_areas') }}">View Product Areas</a>
-    </p>
-
-</body>
-</html>
+{% endblock %}

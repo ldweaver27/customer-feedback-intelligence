@@ -1,208 +1,179 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Themes | Customer Feedback Intelligence</title>
-</head>
+{% block title %}
+    Themes | Customer Feedback Intelligence
+{% endblock %}
 
-<body>
+{% block content %}
 
-    <h1>Customer Feedback Intelligence</h1>
+<h1>Pain-Point Themes</h1>
 
-    <h2>Pain-Point Themes</h2>
+<p>
+    Review AI-proposed themes and understand customer demand
+    for approved pain points.
+</p>
 
-    <p>
-        Review AI-proposed themes and understand customer demand
-        for approved pain points.
-    </p>
 
-    <hr>
+<h2>Proposed Themes</h2>
 
-    <h3>Proposed Themes</h3>
+{% if proposed_themes %}
 
-    {% if proposed_themes %}
+    {% for theme in proposed_themes %}
 
-        {% for theme in proposed_themes %}
+        <div class="card">
 
-            <div>
+            <h3>{{ theme.name }}</h3>
 
-                <h4>{{ theme.name }}</h4>
+            <p>
+                <strong>Product Area:</strong>
+                {{ theme.product_areas.name }}
+            </p>
 
-                <p>
-                    <strong>Product Area:</strong>
-                    {{ theme.product_areas.name }}
-                </p>
+            <p>
+                <strong>Description:</strong>
+                {{ theme.description }}
+            </p>
 
-                <p>
-                    <strong>Description:</strong>
-                    {{ theme.description }}
-                </p>
+            <p>
+                <strong>Status:</strong>
+                {{ theme.status }}
+            </p>
 
-                <p>
-                    <strong>Status:</strong>
-                    {{ theme.status }}
-                </p>
+            <h4>Supporting Feedback</h4>
 
-                <h5>Supporting Feedback</h5>
+            {% if theme.feedback_themes %}
 
-                {% if theme.feedback_themes %}
+                {% for association in theme.feedback_themes %}
 
-                    {% for association in theme.feedback_themes %}
+                    <blockquote>
+                        {{ association.feedback.feedback_text }}
 
-                        <blockquote>
-                            {{ association.feedback.feedback_text }}
+                        <br>
 
-                            <br>
+                        <strong>Company:</strong>
+                        {{ association.feedback.companies.name }}
+                    </blockquote>
 
-                            <strong>Company:</strong>
-                            {{ association.feedback.companies.name }}
-                        </blockquote>
+                {% endfor %}
 
-                    {% endfor %}
+            {% else %}
 
-                {% else %}
+                <p>No supporting feedback found.</p>
 
-                    <p>
-                        No supporting feedback found.
-                    </p>
+            {% endif %}
 
-                {% endif %}
+            <p>
+                <a href="{{ url_for(
+                    'edit_theme',
+                    theme_id=theme.id
+                ) }}">
+                    Edit Theme
+                </a>
+            </p>
 
+            <form
+                method="POST"
+                action="{{ url_for(
+                    'approve_theme',
+                    theme_id=theme.id
+                ) }}"
+            >
+                <button type="submit">
+                    Approve Theme
+                </button>
+            </form>
 
-                <p>
-                    <a href="{{ url_for(
-                        'edit_theme',
-                        theme_id=theme.id
-                    ) }}">
-                        Edit Theme
-                    </a>
-                </p>
+            <form
+                method="POST"
+                action="{{ url_for(
+                    'reject_theme',
+                    theme_id=theme.id
+                ) }}"
+                onsubmit="return confirm(
+                    'Are you sure you want to reject this theme?'
+                );"
+            >
+                <button type="submit">
+                    Reject Theme
+                </button>
+            </form>
 
+        </div>
 
-                <form
-                    method="POST"
-                    action="{{ url_for(
-                        'approve_theme',
-                        theme_id=theme.id
-                    ) }}"
-                >
-                    <button type="submit">
-                        Approve Theme
-                    </button>
-                </form>
+    {% endfor %}
 
+{% else %}
 
-                <br>
+    <p>No themes are currently awaiting review.</p>
 
+{% endif %}
 
-                <form
-                    method="POST"
-                    action="{{ url_for(
-                        'reject_theme',
-                        theme_id=theme.id
-                    ) }}"
-                    onsubmit="return confirm(
-                        'Are you sure you want to reject this theme?'
-                    );"
-                >
-                    <button type="submit">
-                        Reject Theme
-                    </button>
-                </form>
 
-            </div>
+<h2>Approved Themes</h2>
 
-            <hr>
+{% if approved_themes %}
 
-        {% endfor %}
+    {% for theme in approved_themes %}
 
-    {% else %}
+        <div class="card">
 
-        <p>
-            No themes are currently awaiting review.
-        </p>
+            <h3>{{ theme.name }}</h3>
 
-    {% endif %}
+            <p>
+                <strong>Product Area:</strong>
+                {{ theme.product_areas.name }}
+            </p>
 
+            <p>
+                {{ theme.description }}
+            </p>
 
-    <h3>Approved Themes</h3>
+            <h4>Demand Intelligence</h4>
 
-    {% if approved_themes %}
+            <p>
+                <strong>Unique Companies:</strong>
+                {{ theme.demand.unique_companies }}
+            </p>
 
-        {% for theme in approved_themes %}
+            <p>
+                <strong>Feedback Volume:</strong>
+                {{ theme.demand.feedback_volume }}
+            </p>
 
-            <div>
+            <p>
+                <strong>Demand Rate:</strong>
+                {{ theme.demand.demand_rate }}%
+            </p>
 
-                <h4>{{ theme.name }}</h4>
+            <p>
+                <strong>Demand Classification:</strong>
+                {{ theme.demand.demand_classification }}
+            </p>
 
-                <p>
-                    <strong>Product Area:</strong>
-                    {{ theme.product_areas.name }}
-                </p>
+            <p>
+                <strong>ARR Represented:</strong>
+                ${{ "{:,.2f}".format(
+                    theme.demand.represented_arr
+                ) }}
+            </p>
 
-                <p>
-                    <strong>Description:</strong>
-                    {{ theme.description }}
-                </p>
+            <p>
+                <a href="{{ url_for(
+                    'theme_detail',
+                    theme_id=theme.id
+                ) }}">
+                    View Supporting Evidence
+                </a>
+            </p>
 
-                <p>
-                    <strong>Status:</strong>
-                    {{ theme.status }}
-                </p>
+        </div>
 
+    {% endfor %}
 
-                <h5>Demand Intelligence</h5>
+{% else %}
 
-                <p>
-                    <strong>Unique Companies:</strong>
-                    {{ theme.demand.unique_companies }}
-                </p>
+    <p>No themes have been approved yet.</p>
 
-                <p>
-                    <strong>Feedback Volume:</strong>
-                    {{ theme.demand.feedback_volume }}
-                </p>
+{% endif %}
 
-                <p>
-                    <strong>Demand Rate:</strong>
-                    {{ theme.demand.demand_rate }}%
-                </p>
-
-                <p>
-                    <strong>Demand Classification:</strong>
-                    {{ theme.demand.demand_classification }}
-                </p>
-
-                <p>
-                    <strong>ARR Represented:</strong>
-                    ${{ "{:,.2f}".format(
-                        theme.demand.represented_arr
-                    ) }}
-                </p>
-
-            </div>
-
-            <hr>
-
-        {% endfor %}
-
-    {% else %}
-
-        <p>
-            No themes have been approved yet.
-        </p>
-
-    {% endif %}
-
-
-    <p>
-        <a href="{{ url_for('feedback') }}">
-            View Customer Feedback
-        </a>
-    </p>
-
-</body>
-
-</html>
+{% endblock %}

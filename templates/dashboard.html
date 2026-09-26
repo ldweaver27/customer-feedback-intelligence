@@ -1,23 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Customer Feedback Intelligence</title>
-</head>
+{% block title %}
+    Dashboard | Customer Feedback Intelligence
+{% endblock %}
 
-<body>
 
-    <h1>Customer Feedback Intelligence</h1>
+{% block content %}
 
-    <p>
-        Turn customer feedback into transparent product demand signals.
-    </p>
+<h1>Product Insights Dashboard</h1>
 
-    <hr>
+<p>
+    Turn customer feedback into transparent product demand signals.
+</p>
 
-    <h2>Feedback Overview</h2>
+<hr>
+
+<h2>Feedback Overview</h2>
+
+<div class="card">
 
     <p>
         <strong>Total Feedback Records:</strong>
@@ -29,148 +30,117 @@
         {{ total_companies }}
     </p>
 
-    <hr>
+</div>
 
 
-    <h2>Feedback by Product Area</h2>
+<h2>Feedback by Product Area</h2>
 
-    {% if product_areas %}
+{% if product_areas %}
 
-        <table border="1" cellpadding="8">
+    <table>
 
-            <thead>
+        <thead>
+            <tr>
+                <th>Product Area</th>
+                <th>Feedback Records</th>
+                <th>Unique Companies</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for area in product_areas %}
+
                 <tr>
-                    <th>Product Area</th>
-                    <th>Feedback Records</th>
-                    <th>Unique Companies</th>
+                    <td>{{ area.name }}</td>
+                    <td>{{ area.feedback_count }}</td>
+                    <td>{{ area.unique_companies }}</td>
                 </tr>
-            </thead>
 
-            <tbody>
+            {% endfor %}
 
-                {% for area in product_areas %}
+        </tbody>
 
-                    <tr>
-                        <td>{{ area.name }}</td>
-                        <td>{{ area.feedback_count }}</td>
-                        <td>{{ area.unique_companies }}</td>
-                    </tr>
+    </table>
 
-                {% endfor %}
+{% else %}
 
-            </tbody>
+    <p>No feedback data is available.</p>
 
-        </table>
-
-    {% else %}
-
-        <p>No feedback data is available.</p>
-
-    {% endif %}
-
-    <hr>
+{% endif %}
 
 
-    <h2>Customer Pain-Point Demand</h2>
+<h2>Customer Pain-Point Demand</h2>
 
-    {% if themes %}
+{% if themes %}
 
-        <table border="1" cellpadding="8">
+    <table>
 
-            <thead>
+        <thead>
+            <tr>
+                <th>Theme</th>
+                <th>Product Area</th>
+                <th>Unique Companies</th>
+                <th>Feedback Volume</th>
+                <th>Demand Rate</th>
+                <th>Classification</th>
+                <th>ARR Represented</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for theme in themes %}
+
                 <tr>
-                    <th>Theme</th>
-                    <th>Product Area</th>
-                    <th>Unique Companies</th>
-                    <th>Feedback Volume</th>
-                    <th>Demand Rate</th>
-                    <th>Classification</th>
-                    <th>ARR Represented</th>
+
+                    <td>
+                        <a href="{{ url_for(
+                            'theme_detail',
+                            theme_id=theme.id
+                        ) }}">
+                            {{ theme.name }}
+                        </a>
+                    </td>
+
+                    <td>
+                        {{ theme.product_areas.name }}
+                    </td>
+
+                    <td>
+                        {{ theme.demand.unique_companies }}
+                    </td>
+
+                    <td>
+                        {{ theme.demand.feedback_volume }}
+                    </td>
+
+                    <td>
+                        {{ theme.demand.demand_rate }}%
+                    </td>
+
+                    <td>
+                        {{ theme.demand.demand_classification }}
+                    </td>
+
+                    <td>
+                        ${{ "{:,.2f}".format(
+                            theme.demand.represented_arr
+                        ) }}
+                    </td>
+
                 </tr>
-            </thead>
 
-            <tbody>
+            {% endfor %}
 
-                {% for theme in themes %}
+        </tbody>
 
-                    <tr>
+    </table>
 
-                        <td>
-                            <a href="{{ url_for(
-                                'theme_detail',
-                                theme_id=theme.id
-                            ) }}">
-                                {{ theme.name }}
-                             </a>
-                        </td>
+{% else %}
 
-                        <td>
-                            {{ theme.product_areas.name }}
-                        </td>
+    <p>No approved themes are available.</p>
 
-                        <td>
-                            {{ theme.demand.unique_companies }}
-                        </td>
+{% endif %}
 
-                        <td>
-                            {{ theme.demand.feedback_volume }}
-                        </td>
-
-                        <td>
-                            {{ theme.demand.demand_rate }}%
-                        </td>
-
-                        <td>
-                            {{ theme.demand.demand_classification }}
-                        </td>
-
-                        <td>
-                            ${{ "{:,.2f}".format(
-                                theme.demand.represented_arr
-                            ) }}
-                        </td>
-
-                    </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    {% else %}
-
-        <p>No approved themes are available.</p>
-
-    {% endif %}
-
-    <hr>
-
-
-    <p>
-        <a href="{{ url_for('feedback') }}">
-            View Feedback
-        </a>
-
-        |
-
-        <a href="{{ url_for('themes') }}">
-            Review Themes
-        </a>
-
-        |
-
-        <a href="{{ url_for('companies') }}">
-            Manage Companies
-        </a>
-
-        |
-
-        <a href="{{ url_for('product_areas') }}">
-            Manage Product Areas
-        </a>
-    </p>
-
-</body>
-
-</html>
+{% endblock %}

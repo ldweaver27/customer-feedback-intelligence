@@ -1,18 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Feedback | Customer Feedback Intelligence</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}
+    Upload Feedback | Customer Feedback Intelligence
+{% endblock %}
 
-    <h1>Upload Customer Feedback</h1>
+{% block content %}
 
-    <p>
-        Upload a CSV containing customer feedback from one or more sources.
-    </p>
+<h1>Upload Customer Feedback</h1>
+
+<p>
+    Upload a CSV containing customer feedback from one or more sources.
+</p>
+
+<div class="card">
 
     <h3>Required Columns</h3>
 
@@ -26,11 +26,15 @@
         contact, arr
     </p>
 
-    <hr>
+</div>
 
-    {% if error %}
-        <p><strong>{{ error }}</strong></p>
-    {% endif %}
+
+{% if error %}
+    <p><strong>{{ error }}</strong></p>
+{% endif %}
+
+
+<div class="card">
 
     <form method="POST" enctype="multipart/form-data">
 
@@ -46,15 +50,20 @@
 
         <br><br>
 
-        <button type="submit">Upload Feedback</button>
+        <button type="submit">
+            Upload Feedback
+        </button>
 
     </form>
 
-    {% if result %}
+</div>
 
-        <hr>
 
-        <h3>Upload Results</h3>
+{% if result %}
+
+    <h2>Upload Results</h2>
+
+    <div class="card">
 
         <p>
             <strong>Successfully imported:</strong>
@@ -68,7 +77,7 @@
 
         {% if result.errors %}
 
-            <h4>Errors</h4>
+            <h3>Errors</h3>
 
             <ul>
                 {% for item in result.errors %}
@@ -81,13 +90,8 @@
 
         {% endif %}
 
-    {% endif %}
+    </div>
 
-    <hr>
+{% endif %}
 
-    <p>
-        <a href="{{ url_for('feedback') }}">View Customer Feedback</a>
-    </p>
-
-</body>
-</html>
+{% endblock %}

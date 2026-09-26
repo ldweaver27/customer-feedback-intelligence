@@ -1,18 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Theme | Customer Feedback Intelligence</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}
+    Edit Theme | Customer Feedback Intelligence
+{% endblock %}
 
-    <h1>Edit Proposed Theme</h1>
+{% block content %}
 
-    <p>
-        Review and refine the AI-proposed theme before approval.
-    </p>
+<h1>Edit Proposed Theme</h1>
+
+<p>
+    Review and refine the AI-proposed theme before approval.
+</p>
+
+<div class="card">
 
     <form method="POST">
 
@@ -49,5 +49,6 @@
 
     </form>
 
-</body>
-</html>
+</div>
+
+{% endblock %}

@@ -1,33 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feedback | Customer Feedback Intelligence</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}
+    Feedback | Customer Feedback Intelligence
+{% endblock %}
 
-    <h1>Customer Feedback Intelligence</h1>
+{% block content %}
 
-    <h2>Customer Feedback</h2>
+<h1>Customer Feedback</h1>
 
-    <p>
-        Manually capture customer feedback for AI analysis.
-    </p>
+<p>
+    Capture customer feedback for AI-powered analysis.
+</p>
 
-    <hr>
+<h2>Add Feedback</h2>
 
-    <h3>Add Feedback</h3>
+{% if error %}
+    <p><strong>{{ error }}</strong></p>
+{% endif %}
 
-    {% if error %}
-        <p><strong>{{ error }}</strong></p>
-    {% endif %}
+<div class="card">
 
     <form method="POST" action="{{ url_for('feedback') }}">
 
         <label for="company_id">Company</label><br>
-
         <select id="company_id" name="company_id" required>
             <option value="">Select a company</option>
 
@@ -41,7 +36,6 @@
         <br><br>
 
         <label for="feedback_text">Customer Feedback</label><br>
-
         <textarea
             id="feedback_text"
             name="feedback_text"
@@ -52,7 +46,6 @@
         <br><br>
 
         <label for="source">Source</label><br>
-
         <select id="source" name="source" required>
             <option value="">Select a source</option>
             <option value="Salesforce">Salesforce</option>
@@ -67,7 +60,6 @@
         <br><br>
 
         <label for="feedback_date">Feedback Date</label><br>
-
         <input
             type="date"
             id="feedback_date"
@@ -78,7 +70,6 @@
         <br><br>
 
         <label for="contact">Contact (optional)</label><br>
-
         <input
             type="text"
             id="contact"
@@ -93,136 +84,103 @@
 
     </form>
 
-    <hr>
+</div>
 
-    <h3>Captured Feedback</h3>
 
-    {% if feedback_records %}
+<h2>Captured Feedback</h2>
 
-        {% for item in feedback_records %}
+{% if feedback_records %}
 
-            <div>
+    {% for item in feedback_records %}
+
+        <div class="card">
+
+            <p>
+                <strong>Company:</strong>
+                {{ item.companies.name }}
+            </p>
+
+            <p>
+                <strong>Feedback:</strong>
+                {{ item.feedback_text }}
+            </p>
+
+            <p>
+                <strong>Source:</strong>
+                {{ item.source }}
+            </p>
+
+            <p>
+                <strong>Date:</strong>
+                {{ item.feedback_date }}
+            </p>
+
+            {% if item.contact %}
+                <p>
+                    <strong>Contact:</strong>
+                    {{ item.contact }}
+                </p>
+            {% endif %}
+
+
+            {% if item.ai_pain_point %}
+
+                <h3>AI Analysis</h3>
 
                 <p>
-                    <strong>Company:</strong>
-                    {{ item.companies.name }}
+                    <strong>Product Area:</strong>
+
+                    {% if item.product_areas %}
+                        {{ item.product_areas.name }}
+                    {% else %}
+                        Unclassified
+                    {% endif %}
                 </p>
 
                 <p>
-                    <strong>Feedback:</strong>
-                    {{ item.feedback_text }}
+                    <strong>Underlying Pain Point:</strong>
+                    {{ item.ai_pain_point }}
                 </p>
 
                 <p>
-                    <strong>Source:</strong>
-                    {{ item.source }}
+                    <strong>Requested Solution:</strong>
+
+                    {% if item.requested_solution %}
+                        {{ item.requested_solution }}
+                    {% else %}
+                        None identified
+                    {% endif %}
                 </p>
+
+            {% else %}
 
                 <p>
-                    <strong>Date:</strong>
-                    {{ item.feedback_date }}
+                    <strong>AI Analysis:</strong>
+                    Pending
                 </p>
 
-                {% if item.contact %}
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'analyze_feedback_route',
+                        feedback_id=item.id
+                    ) }}"
+                >
+                    <button type="submit">
+                        Analyze Feedback
+                    </button>
+                </form>
 
-                    <p>
-                        <strong>Contact:</strong>
-                        {{ item.contact }}
-                    </p>
+            {% endif %}
 
-                {% endif %}
+        </div>
 
+    {% endfor %}
 
-                {% if item.ai_pain_point %}
+{% else %}
 
-                    <h4>AI Analysis</h4>
+    <p>No customer feedback has been captured yet.</p>
 
-                    <p>
-                        <strong>Product Area:</strong>
+{% endif %}
 
-                        {% if item.product_areas %}
-                            {{ item.product_areas.name }}
-                        {% else %}
-                            Unclassified
-                        {% endif %}
-                    </p>
-
-                    <p>
-                        <strong>Underlying Pain Point:</strong>
-                        {{ item.ai_pain_point }}
-                    </p>
-
-                    <p>
-                        <strong>Requested Solution:</strong>
-
-                        {% if item.requested_solution %}
-                            {{ item.requested_solution }}
-                        {% else %}
-                            None identified
-                        {% endif %}
-                    </p>
-
-                {% else %}
-
-                    <p>
-                        <strong>AI Analysis:</strong>
-                        Pending
-                    </p>
-
-                    <form
-                        method="POST"
-                        action="{{ url_for(
-                            'analyze_feedback_route',
-                            feedback_id=item.id
-                        ) }}"
-                    >
-                        <button type="submit">
-                            Analyze Feedback
-                        </button>
-                    </form>
-
-                {% endif %}
-
-            </div>
-
-            <hr>
-
-        {% endfor %}
-
-    {% else %}
-
-        <p>
-            No customer feedback has been captured yet.
-        </p>
-
-    {% endif %}
-
-
-    <p>
-
-        <a href="{{ url_for('themes') }}">
-            Review Themes
-        </a>
-
-        |
-
-        <a href="{{ url_for('upload_feedback') }}">
-            Upload Feedback CSV
-        </a>
-
-        |
-
-        <a href="{{ url_for('companies') }}">
-            Manage Companies
-        </a>
-
-        |
-
-        <a href="{{ url_for('product_areas') }}">
-            Manage Product Areas
-        </a>
-
-    </p>
-
-</body>
-</html>
+{% endblock %}

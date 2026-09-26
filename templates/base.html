@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+            Customer Feedback Intelligence
+        {% endblock %}
+    </title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f7f8fa;
+            color: #1f2937;
+        }
+
+        nav {
+            background: #1f2937;
+            padding: 16px 32px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-right: 24px;
+            font-weight: 600;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .brand {
+            font-size: 18px;
+            margin-right: 36px;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 24px 60px;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        h2 {
+            margin-top: 32px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin: 20px 0 32px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f3f4f6;
+        }
+
+        form {
+            margin-bottom: 16px;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 8px;
+            margin-top: 6px;
+            max-width: 100%;
+        }
+
+        button {
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+
+        blockquote {
+            background: white;
+            border-left: 4px solid #9ca3af;
+            margin-left: 0;
+            padding: 14px 18px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin: 18px 0;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a
+            class="brand"
+            href="{{ url_for('dashboard') }}"
+        >
+            Customer Feedback Intelligence
+        </a>
+
+        <a href="{{ url_for('dashboard') }}">
+            Dashboard
+        </a>
+
+        <a href="{{ url_for('feedback') }}">
+            Feedback
+        </a>
+
+        <a href="{{ url_for('upload_feedback') }}">
+            Upload CSV
+        </a>
+
+        <a href="{{ url_for('themes') }}">
+            Themes
+        </a>
+
+        <a href="{{ url_for('companies') }}">
+            Companies
+        </a>
+
+        <a href="{{ url_for('product_areas') }}">
+            Product Areas
+        </a>
+    </nav>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+</body>
+
+</html>
