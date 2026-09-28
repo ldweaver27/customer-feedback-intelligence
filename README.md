@@ -6,6 +6,9 @@ An AI-powered product management application that transforms fragmented customer
 
 **Agile Project Board:** https://ldweaver27.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog
 
+**Detailed Design & Testing Documentation:**  
+[DESIGN_AND_TESTING.md](DESIGN_AND_TESTING.md)
+
 ---
 
 ## Overview
